@@ -14,14 +14,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 8
+      # Install JDK 17 for sdkmanager
+      - name: Set up JDK 17 for Android tools
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          # This will set JAVA_HOME for sdkmanager
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      # Switch to JDK 8 for legacy project build
+      - name: Set up JDK 8 for build
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '8'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Check for Gradle
         id: gradle_check
