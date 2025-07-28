@@ -20,35 +20,28 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          # This will set JAVA_HOME for sdkmanager
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      # Switch to JDK 8 for legacy project build
+      # Download legacy tools that include the 'android' command
+      - name: Install legacy Android tools (for Ant support)
+        run: |
+          wget https://dl.google.com/android/repository/tools_r25.2.5-linux.zip
+          unzip -qo tools_r25.2.5-linux.zip
+          mv tools $ANDROID_HOME/legacy-tools
+
+      # Switch to JDK 8 for build
       - name: Set up JDK 8 for build
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '8'
 
-      - name: Check for Gradle
-        id: gradle_check
-        run: |
-          if [ -f "./gradlew" ] || [ -f "./build.gradle" ]; then
-            echo "has_gradle=true" >> $GITHUB_ENV
-          else
-            echo "has_gradle=false" >> $GITHUB_ENV
-          fi
-
-      - name: Build with Gradle (if exists)
-        if: env.has_gradle == 'true'
-        run: |
-          chmod +x ./gradlew || true
-          ./gradlew assembleDebug --stacktrace || ./gradlew build --stacktrace
-
-      - name: Build with Ant (fallback)
+      - name: Build with Ant (legacy)
         if: env.has_gradle == 'false'
+        env:
+          PATH: ${{ env.ANDROID_HOME }}/legacy-tools:$PATH
         run: |
           if [ ! -f "build.xml" ]; then
             android update project -p . --target android-19
